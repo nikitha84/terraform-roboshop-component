@@ -7,7 +7,7 @@ resource "aws_instance" "main" {
     tags = merge(
         local.common_tags,
         {
-            Name = "${var.project_name}-${var.environment}-${var.component}"
+            Name = "${var.project_name}-${var.environment}-${var.components}"
         }
     )
 
@@ -33,7 +33,7 @@ resource "terraform_data" "main" {
     inline = [
         "chmod +x /tmp/bootstrap.sh",
         #"sudo sh /tmp/bootstrp.sh "
-        "sudo sh /tmp/bootstrap.sh ${var.component} ${var.environment}"
+        "sudo sh /tmp/bootstrap.sh ${var.components} ${var.environment}"
 
     ]
   }
@@ -46,20 +46,20 @@ resource "aws_ec2_instance_state" "main" {
 }
 
 resource "aws_ami_from_instance" "main" {
-  name               = "${var.component}-ami"
+  name               = "${var.components}-ami"
   source_instance_id = aws_instance.main.id
   depends_on = [aws_ec2_instance_state.main]
 
   tags = merge(
         local.common_tags,
         {
-            Name = "${var.project_name}-${var.environment}-${var.component}-ami"
+            Name = "${var.project_name}-${var.environment}-${var.components}-ami"
         }
     )
 }
 
 resource "aws_lb_target_group" "main" {
-  name        = "${var.project_name}-${var.environment}-${var.component}"
+  name        = "${var.project_name}-${var.environment}-${var.components}"
   port        = local.tg_port
   protocol    = "HTTP"
   vpc_id      = local.vpc_id
@@ -78,7 +78,7 @@ resource "aws_lb_target_group" "main" {
 } 
 
 resource "aws_launch_template" "main" {
-  name = "${var.project_name}-${var.environment}-${var.component}"
+  name = "${var.project_name}-${var.environment}-${var.components}"
   image_id = aws_ami_from_instance.main.id
   instance_initiated_shutdown_behavior = "terminate"
   instance_type = "t3.micro"
@@ -94,7 +94,7 @@ resource "aws_launch_template" "main" {
     tags = merge(
       local.common_tags,
         {
-            Name = "${var.project_name}-${var.environment}-${var.component}"
+            Name = "${var.project_name}-${var.environment}-${var.components}"
         }
     )
   }
@@ -106,7 +106,7 @@ resource "aws_launch_template" "main" {
     tags = merge(
       local.common_tags,
         {
-            Name = "${var.project_name}-${var.environment}-${var.component}"
+            Name = "${var.project_name}-${var.environment}-${var.components}"
         }
     )
 
@@ -116,13 +116,13 @@ resource "aws_launch_template" "main" {
     tags = merge(
       local.common_tags,
         {
-            Name = "${var.project_name}-${var.environment}-${var.component}"
+            Name = "${var.project_name}-${var.environment}-${var.components}"
         }
     )
 }  
 
 resource "aws_autoscaling_group" "main" {
-  name                 = "${var.project_name}-${var.environment}-${var.component}"
+  name                 = "${var.project_name}-${var.environment}-${var.components}"
   max_size             = 10
   min_size             = 1
   health_check_grace_period = 100 #start instance health check after 100sec
@@ -149,7 +149,7 @@ resource "aws_autoscaling_group" "main" {
     for_each = merge(
       local.common_tags,
         {
-            Name = "${var.project_name}-${var.environment}-${var.component}"
+            Name = "${var.project_name}-${var.environment}-${var.components}"
         }
     )
     content {
@@ -166,7 +166,7 @@ resource "aws_autoscaling_group" "main" {
 
 resource "aws_autoscaling_policy" "main" {
   autoscaling_group_name = aws_autoscaling_group.main.name
-  name                   = "${var.project_name}-${var.environment}-${var.component}"
+  name                   = "${var.project_name}-${var.environment}-${var.components}"
   policy_type            = "TargetTrackingScaling"
   target_tracking_configuration {
     predefined_metric_specification {
