@@ -206,3 +206,4 @@ resource "terraform_data" "main_local" {
     command = "aws ec2 terminate-instances --instance-ids ${aws_instance.main.id}"
   }
 }
+
